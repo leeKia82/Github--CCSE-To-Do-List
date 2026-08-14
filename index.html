@@ -8,19 +8,36 @@
   </head>
   <body>
     <div class="dashboard-container">
-      <!-- Header / Greeting Section -->
+      <!-- Header / Greeting Section (Challenge: Custom Name) -->
       <header class="greeting-card">
-        <h1 id="greeting">Good day</h1>
+        <h1 class="greeting-heading">
+          <span id="greeting-text">Good day</span>,
+          <span
+            id="username"
+            class="username"
+            contenteditable="true"
+            title="Click to edit name"
+            >Friend</span
+          >
+        </h1>
         <div id="clock" class="clock">00:00:00</div>
         <div id="date" class="date">Loading date...</div>
       </header>
 
       <!-- Main Content Layout -->
       <main class="dashboard-grid">
-        <!-- Focus Timer Widget -->
+        <!-- Focus Timer Widget (Challenge: Custom Pomodoro Time) -->
         <section class="card widget-timer">
           <h2>Focus Timer</h2>
+
+          <div class="timer-presets">
+            <button class="btn btn-preset active" data-time="25">25m</button>
+            <button class="btn btn-preset" data-time="15">15m</button>
+            <button class="btn btn-preset" data-time="45">45m</button>
+          </div>
+
           <div class="timer-display" id="timer-display">25:00</div>
+
           <div class="timer-controls">
             <button id="timer-start-btn" class="btn btn-primary">Start</button>
             <button id="timer-stop-btn" class="btn btn-secondary" disabled>
@@ -51,7 +68,7 @@
           <ul id="links-list" class="links-grid"></ul>
         </section>
 
-        <!-- To-Do List Widget -->
+        <!-- To-Do List Widget (Challenge: Prevent Duplicate Tasks) -->
         <section class="card widget-todo">
           <h2>Tasks</h2>
           <form id="todo-form" class="input-form">

@@ -6,24 +6,44 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ==========================================================================
-   1. Clock & Greeting
+   1. Clock & Greeting (Challenge: Custom Name)
    ========================================================================== */
 function initClockAndGreeting() {
   const clockEl = document.getElementById('clock');
   const dateEl = document.getElementById('date');
-  const greetingEl = document.getElementById('greeting');
+  const greetingTextEl = document.getElementById('greeting-text');
+  const usernameEl = document.getElementById('username');
+
+  // Load username from Local Storage
+  const savedName = localStorage.getItem('dashboard_username');
+  if (savedName) {
+    usernameEl.textContent = savedName;
+  }
+
+  // Save editable username on blur or Enter key
+  usernameEl.addEventListener('blur', () => {
+    let name = usernameEl.textContent.trim();
+    if (!name) name = 'Friend';
+    usernameEl.textContent = name;
+    localStorage.setItem('dashboard_username', name);
+  });
+
+  usernameEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      usernameEl.blur();
+    }
+  });
 
   function update() {
     const now = new Date();
 
-    // Time Formatting
     clockEl.textContent = now.toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
     });
 
-    // Date Formatting
     dateEl.textContent = now.toLocaleDateString(undefined, {
       weekday: 'long',
       year: 'numeric',
@@ -31,7 +51,6 @@ function initClockAndGreeting() {
       day: 'numeric'
     });
 
-    // Greeting logic based on hour
     const hour = now.getHours();
     let greetingText = 'Good morning';
     if (hour >= 12 && hour < 17) {
@@ -41,7 +60,7 @@ function initClockAndGreeting() {
     } else if (hour >= 22 || hour < 5) {
       greetingText = 'Good night';
     }
-    greetingEl.textContent = greetingText;
+    greetingTextEl.textContent = greetingText;
   }
 
   update();
@@ -49,23 +68,39 @@ function initClockAndGreeting() {
 }
 
 /* ==========================================================================
-   2. Focus Timer (25 Minutes)
+   2. Focus Timer (Challenge: Change Pomodoro Time)
    ========================================================================== */
 function initFocusTimer() {
-  const DEFAULT_TIME = 25 * 60; // 25 minutes in seconds
-  let timeRemaining = DEFAULT_TIME;
+  let selectedMinutes = 25;
+  let timeRemaining = selectedMinutes * 60;
   let timerInterval = null;
 
   const displayEl = document.getElementById('timer-display');
   const startBtn = document.getElementById('timer-start-btn');
   const stopBtn = document.getElementById('timer-stop-btn');
   const resetBtn = document.getElementById('timer-reset-btn');
+  const presetBtns = document.querySelectorAll('.btn-preset');
 
   function render() {
     const minutes = Math.floor(timeRemaining / 60);
     const seconds = timeRemaining % 60;
     displayEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   }
+
+  function setPresetTime(minutes) {
+    stopTimer();
+    selectedMinutes = minutes;
+    timeRemaining = minutes * 60;
+    render();
+  }
+
+  presetBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      setPresetTime(parseInt(btn.dataset.time, 10));
+    });
+  });
 
   function startTimer() {
     if (timerInterval) return;
@@ -79,7 +114,7 @@ function initFocusTimer() {
         render();
       } else {
         stopTimer();
-        alert('Focus time is up! Take a short break.');
+        alert('Focus session complete!');
         resetTimer();
       }
     }, 1000);
@@ -94,7 +129,7 @@ function initFocusTimer() {
 
   function resetTimer() {
     stopTimer();
-    timeRemaining = DEFAULT_TIME;
+    timeRemaining = selectedMinutes * 60;
     render();
   }
 
@@ -115,7 +150,6 @@ function initQuickLinks() {
   const urlInput = document.getElementById('link-url');
   const listEl = document.getElementById('links-list');
 
-  // Default links if storage is empty
   const defaultLinks = [
     { id: '1', title: 'Google', url: 'https://google.com' },
     { id: '2', title: 'GitHub', url: 'https://github.com' }
@@ -142,7 +176,6 @@ function initQuickLinks() {
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn-danger btn-icon';
       deleteBtn.textContent = '✕';
-      deleteBtn.title = 'Delete Link';
       deleteBtn.onclick = () => deleteLink(link.id);
 
       li.appendChild(anchor);
@@ -158,13 +191,12 @@ function initQuickLinks() {
       url = 'https://' + url;
     }
 
-    const newLink = {
+    links.push({
       id: Date.now().toString(),
       title: titleInput.value.trim(),
       url: url
-    };
+    });
 
-    links.push(newLink);
     save();
     render();
 
@@ -183,7 +215,7 @@ function initQuickLinks() {
 }
 
 /* ==========================================================================
-   4. To-Do List
+   4. To-Do List (Challenge: Prevent Duplicate Tasks)
    ========================================================================== */
 function initTodoList() {
   const STORAGE_KEY = 'dashboard_todos';
@@ -226,13 +258,11 @@ function initTodoList() {
       const editBtn = document.createElement('button');
       editBtn.className = 'btn-icon';
       editBtn.textContent = '✎';
-      editBtn.title = 'Edit Task';
       editBtn.onclick = () => editTodo(todo.id);
 
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'btn-icon btn-danger';
       deleteBtn.textContent = '✕';
-      deleteBtn.title = 'Delete Task';
       deleteBtn.onclick = () => deleteTodo(todo.id);
 
       actionsDiv.appendChild(editBtn);
@@ -248,6 +278,16 @@ function initTodoList() {
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
+
+    // Challenge implementation: Duplicate task validation
+    const isDuplicate = todos.some(
+      (todo) => todo.text.toLowerCase() === text.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      alert('This task already exists in your list!');
+      return;
+    }
 
     todos.push({
       id: Date.now().toString(),
@@ -272,7 +312,19 @@ function initTodoList() {
 
     const newText = prompt('Edit task:', todo.text);
     if (newText !== null && newText.trim() !== '') {
-      todo.text = newText.trim();
+      const trimmed = newText.trim();
+      
+      // Prevent duplicate edit names
+      const isDuplicate = todos.some(
+        (t) => t.id !== id && t.text.toLowerCase() === trimmed.toLowerCase()
+      );
+
+      if (isDuplicate) {
+        alert('Another task already has this exact name.');
+        return;
+      }
+
+      todo.text = trimmed;
       save();
       render();
     }
